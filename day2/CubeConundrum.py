@@ -42,10 +42,12 @@ def count_games(games: list) -> int:
     for i, game in enumerate(games):
         if (all(possible(reveal) for reveal in game)):
             sum += i+1
+        power += np.prod(game.max(axis=0))
 
-    return sum
+    return sum, power
 
 if __name__ ==  '__main__':
     game = parse_input(Path("day2/input.txt"))
-    sum = count_games(game)
+    sum, power = count_games(game)
     print(sum)
+    print(power)
