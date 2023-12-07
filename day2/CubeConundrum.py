@@ -2,7 +2,7 @@ from pathlib import Path
 import numpy as np
 import re
 
-#[r,g,b]
+# [r,g,b]
 distribution = np.array([12, 13, 14])
 
 red_cubes = r"(\d+) red"
@@ -11,6 +11,7 @@ blue_cubes = r"(\d+) blue"
 
 possible = lambda a: np.all(a <= distribution)
 
+
 def parse_input(file_path: Path) -> list:
     # [
     #   [[r,g,b],[r,g,b],...,],
@@ -18,7 +19,7 @@ def parse_input(file_path: Path) -> list:
     #     ...
     # ]
     data = []
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         for line in f:
             game = re.sub(r"Game \d*: ", "", line.rstrip()).split(";")
             normalized_game = []
@@ -36,17 +37,19 @@ def parse_input(file_path: Path) -> list:
             data.append(np.array(normalized_game))
     return data
 
+
 def count_games(games: list) -> int:
     sum = 0
     power = 0
     for i, game in enumerate(games):
-        if (all(possible(reveal) for reveal in game)):
-            sum += i+1
+        if all(possible(reveal) for reveal in game):
+            sum += i + 1
         power += np.prod(game.max(axis=0))
 
     return sum, power
 
-if __name__ ==  '__main__':
+
+if __name__ == "__main__":
     game = parse_input(Path("day2/input.txt"))
     sum, power = count_games(game)
     print(sum)
