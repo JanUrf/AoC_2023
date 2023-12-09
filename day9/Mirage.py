@@ -1,8 +1,11 @@
 from pathlib import Path
-import re
 import numpy as np
-import math
+from enum import Enum
 
+
+class Direction(Enum):
+    FRONT = 0
+    LAST = -1
 
 
 def parse_input(file_path: Path) -> list:
@@ -12,11 +15,10 @@ def parse_input(file_path: Path) -> list:
     with open(file_path, "r") as f:
         for line in f:
             current_line = []
-            input_line = np.array([int(x) for x in line.rstrip().split()])
-            current_line.append(input_line)
-            
-            # calculate derivations            
-            last_line = input_line
+            last_line = np.array([int(x) for x in line.rstrip().split()])
+            current_line.append(last_line)
+
+            # calculate derivations
             while True:
                 diff = np.diff(last_line)
                 current_line.append(diff)
@@ -28,28 +30,32 @@ def parse_input(file_path: Path) -> list:
     return report
 
 
-def calculate_next(report: list):
+def calculate_next(report: list, direction: Direction = Direction.LAST):
+    """
+    Direction defines at which index the new values should be appended.
+    """
     for i in range(len(report)):
         last_element_below = 0
+
         # iterate backwards from 0 derivation upwards
         for j in reversed(range(len(report[i]))):
-            if j == len(report[i])-1:
-                report[i][j]=np.append(report[i][j], last_element_below)
+            if direction == Direction.FRONT:
+                last_element_below *= -1
+                index_insert = 0
             else:
-                new_value= report[i][j][-1]+ last_element_below
-                report[i][j]=np.append(report[i][j], new_value)
-                last_element_below = new_value
+                index_insert = report[i][j].size
+
+            last_element_below = report[i][j][direction.value] + last_element_below
+            report[i][j] = np.insert(report[i][j], index_insert, last_element_below)
 
 
-def calculate_sum(report: list) -> int:
-    # TODO do this with reduce function
-    sum = 0
-    for i in range(len(report)):
-        sum += report[i][0][-1]
-    return sum
+def calculate_sum(report: list, index: Direction = Direction.LAST) -> int:
+    return np.sum([row[0][index.value] for row in report])
+
 
 if __name__ == "__main__":
     report = parse_input(Path("day9/input.txt"))
-    calculate_next(report)
-    sum=calculate_sum(report)
+    direction = Direction.FRONT
+    calculate_next(report, direction)
+    sum = calculate_sum(report, direction)
     print(sum)
