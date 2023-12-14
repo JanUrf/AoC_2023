@@ -26,23 +26,36 @@ def parse_input(file_path: Path) -> list:
 def find_next_free_position(
     map: npt.NDArray, start: list, direction: Direction
 ) -> list:
-    coordinate = [start[0], start[1]]
-    while 0 <= coordinate[0] < map.shape[0] and 0 <= coordinate[1] < map.shape[1]:
-        new_coordinate = np.add(coordinate, direction.value)
+    last_coordinate = [start[0], start[1]]
+    new_coordinate = np.add(last_coordinate, direction.value)
+    while (
+        0 <= new_coordinate[0] < map.shape[0] and 0 <= new_coordinate[1] < map.shape[1]
+    ):
+
         # next place is a cube rock
         if (
             map[new_coordinate[0]][new_coordinate[1]] == "#"
             or map[new_coordinate[0]][new_coordinate[1]] == "O"
         ):
-            return coordinate
-        coordinate = new_coordinate
-    return np.subtract(coordinate, direction.value)
+            return last_coordinate
+        last_coordinate = new_coordinate
+        new_coordinate = np.add(last_coordinate, direction.value)
+
+    return last_coordinate
 
 
 def tilt(map: npt.NDArray, direction: Direction) -> npt.NDArray:
     tilted_map = np.copy(map)
-    for y in range(map.shape[0]):
-        for x in range(map.shape[1]):
+    for y in (
+        range(map.shape[0])
+        if direction == Direction.NORTH or direction == Direction.WEST
+        else reversed(range(map.shape[0]))
+    ):
+        for x in (
+            range(map.shape[1])
+            if direction == Direction.NORTH or direction == Direction.WEST
+            else reversed(range(map.shape[1]))
+        ):
             if tilted_map[x][y] == "O":
                 new_position = find_next_free_position(tilted_map, [x, y], direction)
                 tilted_map[x][y] = "."
@@ -61,9 +74,34 @@ def calculate_load(map: npt.NDArray) -> int:
 
 
 if __name__ == "__main__":
-    map = parse_input(Path("day14/input.txt"))
-    new_map = tilt(map, Direction.NORTH)
+    new_map = parse_input(Path("day14/input.txt"))
 
-    load = calculate_load(new_map)
-    # print(new_map)
+    cycles = 1000000000
+
+    history = [new_map]
+    reached_cycle = False
+    for i in range(cycles):
+        new_map = tilt(new_map, Direction.NORTH)
+        new_map = tilt(new_map, Direction.WEST)
+        new_map = tilt(new_map, Direction.SOUTH)
+        new_map = tilt(new_map, Direction.EAST)
+
+        print("spin cycle: ", i)
+        for j, hist in enumerate(history):
+            if np.array_equal(hist, new_map):
+                # first cycle element is visited again
+                reached_cycle = True
+                break
+
+        if not reached_cycle:
+            history.append(new_map)
+        else:
+            break
+
+    remaining_iterations = cycles - (i + 1)
+    cycle = history[j:]
+    # skip all cycles and only go the remaining ones in the cached value
+    final_map_index = remaining_iterations % len(cycle)
+    load = calculate_load(cycle[final_map_index])
+
     print("load: ", load)
