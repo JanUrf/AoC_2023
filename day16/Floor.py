@@ -139,3 +139,53 @@ if __name__ == "__main__":
     visit_laser(Direction.EAST, (0, 0), layout, energized)
     # print(energized)
     print("energized tiles: ", np.count_nonzero(energized != set()))
+
+    best = 0
+    start_point = ()
+
+    for i in range(layout.shape[1]):
+        # check for first row
+        energized = np.array([set() for _ in range(layout.size)]).reshape(layout.shape)
+        visit_laser(Direction.SOUTH, (0, i), layout, energized)
+        new_energy = np.count_nonzero(energized != set())
+        if new_energy > best:
+            best = new_energy
+            start_point = (0, i)
+            best_dir = Direction.SOUTH
+
+        # check for last row
+        energized = np.array([set() for _ in range(layout.size)]).reshape(layout.shape)
+        visit_laser(Direction.NORTH, (layout.shape[0] - 1, i), layout, energized)
+        new_energy = np.count_nonzero(energized != set())
+        if new_energy > best:
+            best = new_energy
+            start_point = (layout.shape[0] - 1, i)
+            best_dir = Direction.NORTH
+
+    for i in range(layout.shape[0]):
+        # check for first column
+        energized = np.array([set() for _ in range(layout.size)]).reshape(layout.shape)
+        visit_laser(Direction.EAST, (i, 0), layout, energized)
+        new_energy = np.count_nonzero(energized != set())
+        if new_energy > best:
+            best = new_energy
+            start_point = (i, 0)
+            best_dir = Direction.EAST
+
+        # check for last column
+        energized = np.array([set() for _ in range(layout.size)]).reshape(layout.shape)
+        visit_laser(Direction.WEST, (i, layout.shape[1] - 1), layout, energized)
+        new_energy = np.count_nonzero(energized != set())
+        if new_energy > best:
+            best = new_energy
+            start_point = (i, layout.shape[1] - 1)
+            best_dir = Direction.WEST
+
+    print(
+        "best starting position would be: ",
+        start_point,
+        " in direction: ",
+        best_dir.name,
+        " with energy of: ",
+        best,
+    )
